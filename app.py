@@ -3,12 +3,17 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from PIL import Image
 import requests
 
+
 @st.cache_resource
 def load_model():
-    tokenizer = AutoTokenizer.from_pretrained("Muizzzz8/phi3-prescription-reader")
+    tokenizer = AutoTokenizer.from_pretrained(
+        "Muizzzz8/phi3-prescription-reader",
+        revision="main"
+    )
     model = AutoModelForCausalLM.from_pretrained(
         "Muizzzz8/phi3-prescription-reader",
-        trust_remote_code=True
+        trust_remote_code=True,
+        revision="main" 
     )
     return tokenizer, model
 
@@ -23,6 +28,7 @@ if uploaded_file is not None:
     if uploaded_file.type.startswith("image"):
         image = Image.open(uploaded_file)
         st.image(image, caption="Uploaded Prescription Image", use_column_width=True)
+        
         extracted_text = st.text_area("OCR Result", value="Paracetamol 500mg, Take 1 tablet every 6 hours")
     elif uploaded_file.type == "text/plain":
         content = uploaded_file.read().decode("utf-8")
@@ -42,13 +48,18 @@ if st.button("Extract & Validate Prescription"):
             st.subheader("Extracted Medicines/Dosages")
             st.write(extracted_entities)
 
+            
+            ibm_api_key = "YOUR_WATSON_API_KEY"
+            ibm_url = "https://your_watson_instance/api/validate_prescription"
+            payload = {
+                "prescription_data": extracted_entities,
+                "patient_info": {"age": 50, "weight": 80, "known_allergies": []}
+            }
+            headers = {
+                "Authorization": f"Bearer {ibm_api_key}",
+                "Content-Type": "application/json"
+            }
            
-            st.info("Replace IBM Watson API call with your credentials & handle response.")
-        except Exception as e:
-            st.error(f"Extraction error: {e}")
-
-           
-
             st.info("Replace IBM Watson API call with your credentials & handle response.")
         except Exception as e:
             st.error(f"Error during extraction: {e}")
