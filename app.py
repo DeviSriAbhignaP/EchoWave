@@ -23,7 +23,7 @@ if uploaded_file is not None:
     if uploaded_file.type.startswith("image"):
         image = Image.open(uploaded_file)
         st.image(image, caption="Uploaded Prescription Image", use_column_width=True)
-        # TODO: Implement OCR here; for now placeholder text
+        
         extracted_text = st.text_area("OCR Result", value="Paracetamol 500mg, Take 1 tablet every 6 hours")
     elif uploaded_file.type == "text/plain":
         content = uploaded_file.read().decode("utf-8")
@@ -43,7 +43,7 @@ if st.button("Extract & Validate Prescription"):
             st.subheader("Extracted Medicines/Dosages")
             st.write(extracted_entities)
 
-            # IBM Watson API call example (replace placeholders)
+          
             ibm_api_key = "YOUR_WATSON_API_KEY"
             ibm_url = "https://your_watson_instance/api/validate_prescription"
             payload = {
@@ -54,10 +54,7 @@ if st.button("Extract & Validate Prescription"):
                 "Authorization": f"Bearer {ibm_api_key}",
                 "Content-Type": "application/json"
             }
-            # Uncomment and handle Watson call when ready:
-            # response = requests.post(ibm_url, json=payload, headers=headers)
-            # st.subheader("Watson Validation Result")
-            # st.json(response.json())
+           
 
             st.info("Replace IBM Watson API call with your credentials & handle response.")
         except Exception as e:
