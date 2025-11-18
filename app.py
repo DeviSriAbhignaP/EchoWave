@@ -5,7 +5,7 @@ import requests
 
 @st.cache_resource
 def load_model():
-    revision = "your_specific_commit_or_tag" 
+    revision = "main"  # Replace with a specific commit hash or tag if stable version is needed
     tokenizer = AutoTokenizer.from_pretrained(
         "Muizzzz8/phi3-prescription-reader",
         revision=revision
@@ -47,7 +47,7 @@ if st.button("Extract & Validate Prescription"):
             st.subheader("Extracted Medicines/Dosages")
             st.write(extracted_entities)
 
-          
+            # IBM Watson API call placeholder
             ibm_api_key = "YOUR_WATSON_API_KEY"
             ibm_url = "https://your_watson_instance/api/validate_prescription"
             payload = {
@@ -58,7 +58,11 @@ if st.button("Extract & Validate Prescription"):
                 "Authorization": f"Bearer {ibm_api_key}",
                 "Content-Type": "application/json"
             }
-           
+            # Uncomment and fill parameters to enable
+            # response = requests.post(ibm_url, json=payload, headers=headers)
+            # st.subheader("Watson Validation Result")
+            # st.json(response.json())
+
             st.info("Replace IBM Watson API call with your credentials & handle response.")
         except Exception as e:
             st.error(f"Error during extraction: {e}")
