@@ -1,8 +1,11 @@
+# Streamlit UI
 streamlit==1.51.0
 rich==14.2.0
 markdown-it-py==2.2.0
 mdurl==0.1.2
 pygments==2.19.2
+
+# Data and utils
 pandas==2.3.3
 pyyaml==6.0.3
 python-dateutil==2.9.0
@@ -15,11 +18,11 @@ six==1.17.0
 typing-extensions==4.15.0
 urllib3==2.5.0
 
+# ML / AI
 torch==2.9.1+cpu
 transformers==4.57.1
 tokenizers==0.22.1
 safetensors==0.6.2
-triton==3.5.1
 pyarrow==9.0.0
 pillow==12.0.0
 
