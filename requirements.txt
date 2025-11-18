@@ -17,7 +17,7 @@ typing-extensions==4.15.0
 urllib3==2.5.0
 
 # Machine Learning & AI
-torch==2.9.1+cpu
+torch==2.9.1+cu12
 transformers==4.57.1
 tokenizers==0.22.1
 safetensors==0.6.2
