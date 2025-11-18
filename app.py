@@ -1,4 +1,3 @@
-HF = st.secrects["HF_TOKEN = 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"]
 import streamlit as st
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from PIL import Image
@@ -67,4 +66,4 @@ if st.button("Extract & Validate Prescription"):
             st.info("Replace IBM Watson API call with your credentials & handle response.")
         except Exception as e:
             st.error(f"Error during extraction: {e}")
-headers = {"Authorization": f"Bearer{HF_TOKEN}"}
+
