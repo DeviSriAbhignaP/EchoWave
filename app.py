@@ -1,31 +1,29 @@
 import streamlit as st
 from PIL import Image
 import easyocr
+import numpy as np
 from transformers import pipeline
 
-st.set_page_config(page_title="AI Medical Prescription Verification", layout="wide")
-st.title("AI Medical Prescription Verification (Hugging Face + OCR)")
+st.set_page_config(page_title="AI Prescription Verification", layout="wide")
+st.title("AI Prescription Verification (CPU-only)")
 
-# ---------------- Hugging Face Model ----------------
+# Hugging Face pipeline
 @st.cache_resource
 def load_hf_model():
-    # Using a simple classification pipeline for demonstration
     return pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2-english")
 
 hf_pipeline = load_hf_model()
 
-# ---------------- OCR Setup ----------------
+# EasyOCR setup
 reader = easyocr.Reader(['en'])
 
-# ---------------- Input ----------------
-input_type = st.radio("Choose input type:", ["Text", "Image"])
+input_type = st.radio("Input type:", ["Text", "Image"])
 
 if input_type == "Text":
-    prescription_text = st.text_area("Enter prescription text here:")
+    prescription_text = st.text_area("Enter prescription text:")
     if prescription_text:
-        st.subheader("Hugging Face Text Analysis")
-        hf_result = hf_pipeline(prescription_text)
-        st.write(hf_result)
+        st.subheader("Text Analysis")
+        st.write(hf_pipeline(prescription_text))
 
 elif input_type == "Image":
     uploaded_file = st.file_uploader("Upload prescription image", type=["png", "jpg", "jpeg"])
@@ -39,6 +37,5 @@ elif input_type == "Image":
         st.text(extracted_text)
 
         if extracted_text:
-            st.subheader("Hugging Face Text Analysis")
-            hf_result = hf_pipeline(extracted_text)
-            st.write(hf_result)
+            st.subheader("Text Analysis")
+            st.write(hf_pipeline(extracted_text))
