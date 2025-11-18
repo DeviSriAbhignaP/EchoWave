@@ -1,69 +1,63 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForCausalLM
 from PIL import Image
 import requests
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+from ibm_watson import NaturalLanguageUnderstandingV1
+from ibm_watson.natural_language_understanding_v1 import Features, EntitiesOptions, KeywordsOptions
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 
+st.set_page_config(page_title="AI Medical Prescription Verification", layout="wide")
+st.title("AI Medical Prescription Verification")
+
+# ---------------- IBM Watson Setup ----------------
+watson_api_key = st.secrets.get("WATSON_API_KEY", "")
+watson_url = st.secrets.get("WATSON_URL", "")
+
+if watson_api_key and watson_url:
+    authenticator = IAMAuthenticator(watson_api_key)
+    nlu = NaturalLanguageUnderstandingV1(
+        version='2023-11-17',
+        authenticator=authenticator
+    )
+    nlu.set_service_url(watson_url)
+else:
+    st.warning("IBM Watson credentials not set in Streamlit secrets.")
+
+# ---------------- Hugging Face Model Setup ----------------
 @st.cache_resource
-def load_model():
-    revision = "main"  # Replace with a specific commit hash or tag if stable version is needed
-    tokenizer = AutoTokenizer.from_pretrained(
-        "Muizzzz8/phi3-prescription-reader",
-        revision=revision
-    )
-    model = AutoModelForCausalLM.from_pretrained(
-        "Muizzzz8/phi3-prescription-reader",
-        trust_remote_code=True,
-        revision=revision
-    )
-    return tokenizer, model
+def load_hf_model():
+    model_name = "distilbert-base-uncased-finetuned-sst-2-english"  # sentiment demo
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name)
+    return pipeline("text-classification", model=model, tokenizer=tokenizer)
 
-st.title("AI Prescription Verification App")
+hf_pipeline = load_hf_model()
 
-tokenizer, model = load_model()
+# ---------------- Prescription Input ----------------
+input_type = st.radio("Choose input type:", ["Text", "Image"])
 
-uploaded_file = st.file_uploader("Upload Prescription Image or enter text below", type=["jpg", "jpeg", "png", "txt"])
+if input_type == "Text":
+    prescription_text = st.text_area("Enter prescription text here:")
+    if prescription_text:
+        # Hugging Face demo
+        hf_result = hf_pipeline(prescription_text)
+        st.write("Hugging Face Analysis:", hf_result)
 
-extracted_text = ""
-if uploaded_file is not None:
-    if uploaded_file.type.startswith("image"):
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Prescription Image", use_column_width=True)
-        extracted_text = st.text_area("OCR Result", value="Paracetamol 500mg, Take 1 tablet every 6 hours")
-    elif uploaded_file.type == "text/plain":
-        content = uploaded_file.read().decode("utf-8")
-        st.write("Uploaded Prescription Text:")
-        st.write(content)
-        extracted_text = content
+        # IBM Watson NLU analysis
+        if watson_api_key:
+            try:
+                watson_result = nlu.analyze(
+                    text=prescription_text,
+                    features=Features(entities=EntitiesOptions(), keywords=KeywordsOptions())
+                ).get_result()
+                st.write("IBM Watson NLU Analysis:", watson_result)
+            except Exception as e:
+                st.error(f"IBM Watson Analysis failed: {e}")
 
-user_input = st.text_area("Or manually input prescription text here", value=extracted_text)
-
-if st.button("Extract & Validate Prescription"):
-    with st.spinner("Extracting..."):
-        try:
-            prompt = f"Read the following prescription and extract medicine names and dosages:\n{user_input}"
-            inputs = tokenizer(prompt, return_tensors="pt")
-            outputs = model.generate(**inputs, max_new_tokens=200)
-            extracted_entities = tokenizer.decode(outputs[0], skip_special_tokens=True)
-            st.subheader("Extracted Medicines/Dosages")
-            st.write(extracted_entities)
-
-            # IBM Watson API call placeholder
-            ibm_api_key = "YOUR_WATSON_API_KEY"
-            ibm_url = "https://your_watson_instance/api/validate_prescription"
-            payload = {
-                "prescription_data": extracted_entities,
-                "patient_info": {"age": 50, "weight": 80, "known_allergies": []}
-            }
-            headers = {
-                "Authorization": f"Bearer {ibm_api_key}",
-                "Content-Type": "application/json"
-            }
-            # Uncomment and fill parameters to enable
-            # response = requests.post(ibm_url, json=payload, headers=headers)
-            # st.subheader("Watson Validation Result")
-            # st.json(response.json())
-
-            st.info("Replace IBM Watson API call with your credentials & handle response.")
-        except Exception as e:
-            st.error(f"Error during extraction: {e}")
+elif input_type == "Image":
+    uploaded_file = st.file_uploader("Upload prescription image", type=["png", "jpg", "jpeg"])
+    if uploaded_file:
+        image = Image.open(uploaded_file).convert("RGB")
+        st.image(image, caption="Uploaded Prescription", use_column_width=True)
+        st.info("OCR and AI verification can be added here (Tesseract or Hugging Face Vision models)")
 
