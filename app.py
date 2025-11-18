@@ -1,22 +1,23 @@
 import streamlit as st
 from PIL import Image
-import easyocr
 import numpy as np
+import easyocr
 from transformers import pipeline
 
 st.set_page_config(page_title="AI Prescription Verification", layout="wide")
 st.title("AI Prescription Verification (CPU-only)")
 
-# Hugging Face pipeline
+# Load Hugging Face pipeline
 @st.cache_resource
 def load_hf_model():
     return pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2-english")
 
 hf_pipeline = load_hf_model()
 
-# EasyOCR setup
+# EasyOCR reader
 reader = easyocr.Reader(['en'])
 
+# Input type
 input_type = st.radio("Input type:", ["Text", "Image"])
 
 if input_type == "Text":
@@ -39,3 +40,5 @@ elif input_type == "Image":
         if extracted_text:
             st.subheader("Text Analysis")
             st.write(hf_pipeline(extracted_text))
+
+            
